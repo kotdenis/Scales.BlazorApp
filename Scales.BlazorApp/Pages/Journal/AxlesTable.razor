@@ -1,0 +1,25 @@
+﻿<table class="table table-success table-striped table-hover" id="journaltable">
+    <thead>
+        <tr>
+            <th>Parameters</th>
+            @foreach (var item in AxlesDtos)
+            {
+                <th>@item.AxleNumber.ToString()</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Load per axle</td>
+            @foreach (var item in AxlesDtos)
+            {
+                <td>@item.LoadPerAxle.ToString()</td>
+            }
+        </tr>
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public List<AxlesDto> AxlesDtos { get; set; } = new List<AxlesDto>();
+}

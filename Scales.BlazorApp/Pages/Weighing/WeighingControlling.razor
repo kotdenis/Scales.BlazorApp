@@ -1,0 +1,71 @@
+﻿<div class="card" style="width:80%;margin-left:10vh;">
+    <div class="card-body">
+        <p class="card-title text-center bg-success fw-bold rounded" style="font-size:2rem;color:white;">@CurrentWeight</p>
+        <div class="row mt-2">
+            <div class="col-sm">
+                <form class="d-flex flex-column">
+                    <div class="form-group">
+                        <div>
+                            <label class="form-label" style="font-weight:bold;font-size:1.2rem"><i class="fa fa-solid fa-car"></i>&nbsp;Car brand</label>
+                        </div>
+                        <input class="form-control" @bind-value="Transport.Brand" readonly style="font-weight:bold;font-size:1.4rem;color:grey" />
+                    </div>
+                    <div class="form-group">
+                        <div>
+                            <label class="form-label" style="font-weight:bold;font-size:1.2rem"><i class="fa fa-solid fa-car-rear"></i>&nbsp;Car plate</label>
+                        </div>
+                        <input class="form-control" @bind-value="Transport.CarPlate" readonly style="font-weight:bold;font-size:1.4rem;color:grey" />
+                    </div>
+                    <div class="form-group">
+                        <div>
+                            <label class="form-label" style="font-weight:bold;font-size:1.2rem"><i class="fa fa-solid fa-trailer"></i>&nbsp;Cargo</label>
+                        </div>
+                        <input class="form-control" @bind-value="Transport.Cargo" readonly style="font-weight:bold;font-size:1.4rem;color:grey" />
+                    </div>
+                    <div class="form-group">
+                        <div>
+                            <label class="form-label" style="font-weight:bold;font-size:1.2rem"><i class="fa fa-solid fa-truck"></i>&nbsp;Number of axles</label>
+                        </div>
+                        <input type="number" class="form-control" @bind-value="Transport.NumberOfAxles" readonly style="font-weight:bold;font-size:1.4rem;color:grey" />
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-sm">
+                <div class="d-flex flex-column mt-4">
+                    <button class="btn btn-secondary" @onclick="() => GetTransport()" disabled="@GetTransportDisabled" style="font-weight:bold;font-size:2rem;">
+                        Get Transport
+                    </button>
+                    <button class="btn mt-2" @onclick="async() => await BeginWeighingAsync()" disabled="@StartWeighingDisabled"
+                            style="font-weight:bold;font-size:2rem;background-color:#059669">
+                        Start Weghing
+                    </button>
+                    <button class="btn btn-warning mt-2" @onclick="async() => await SaveWeighingAsync()" disabled="@SaveWeighingDisabled"
+                            style="font-weight:bold;font-size:2rem">
+                        Save Weighing
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public TransportToWeigh Transport { get; set; } = new();
+    [Parameter]
+    public string CurrentWeight { get; set; } = "0.00";
+    [Parameter]
+    public Action GetTransport { get; set; }
+    [Parameter]
+    public Func<Task> BeginWeighingAsync { get; set; }
+    [Parameter]
+    public Func<Task> SaveWeighingAsync { get; set; }
+    [Parameter]
+    public bool GetTransportDisabled { get; set; }
+    [Parameter]
+    public bool StartWeighingDisabled { get; set; }
+    [Parameter]
+    public bool SaveWeighingDisabled { get; set; }
+}

@@ -1,0 +1,67 @@
+﻿<table class="table table-success table-striped table-hover" id="journaltable" style="height:50vh;">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Car brand</th>
+            <th>Car plate</th>
+            <th>Axles</th>
+            <th>Select</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if(RefTransportDtos.Count > 0)
+        {
+            int num = Number;
+            foreach (var dto in RefTransportDtos)
+            {
+                num += 1;
+                <tr>
+                    <td>@num</td>
+                    <td>@dto.Brand</td>
+                    <td>@dto.CarPlate</td>
+                    <td>@dto.NumberOfAxles</td>
+                    <td>
+                        <button class="btn btn-success" style="font-weight:bold" @onclick="() => SelectTransport(dto)">Select</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+<div>
+    <ul class="pagination">
+        @if (Links != null)
+        {
+            @foreach (var link in Links)
+            {
+                        <li @onclick="async() => await OnSelectedPage(link)" @onclick:preventDefault @onclick:stopPropagation
+                    style="cursor: pointer;" class="page-item @(link.Enabled ? null : "disabled")
+                                    @(link.Active ? "active" : null)">
+                            <span class="page-link" href="#">@link.Text</span>
+                        </li>
+            }
+        }
+    </ul>
+
+</div>
+<style>
+    .pagination {
+        --bs-pagination-active-color: white !important;
+        --bs-pagination-active-bg: teal !important;
+        --bs-pagination-active-border-color: teal !important;
+        --bs-pagination-color: teal !important;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public List<RefTransportDto> RefTransportDtos { get; set; } = new List<RefTransportDto>();
+    [Parameter]
+    public int Number { get; set; }
+    [Parameter]
+    public Action<RefTransportDto> SelectTransport { get; set; } = (x) => { };
+    [Parameter]
+    public Func<PagingLink, Task> OnSelectedPage { get; set; } = (x) => Task.CompletedTask;
+    [Parameter]
+    public List<PagingLink> Links { get; set; } = new List<PagingLink>();
+}

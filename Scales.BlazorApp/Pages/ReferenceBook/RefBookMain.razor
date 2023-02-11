@@ -1,0 +1,180 @@
+﻿@page "/referenceBook"
+
+
+@inject IJSRuntime _jsRuntime
+@inject IRefBookService _refBookService
+@inject RefBookState _refBookState
+
+<div class="container">
+    <h1 class="text-center fw-bold">Reference Book</h1>
+    <div class="row">
+        <div class="col-sm-8">
+            <RefBookTable Number="@_number" Links="Links" OnSelectedPage="OnSelectedPage" RefTransportDtos="_refBookState.RefTransportDtos" SelectTransport="SelectTransport"/>
+        </div>
+        <div class="col-sm">
+            <RefBookAdmin ClearCard="ClearCard" CreateAsync="CreateAsync" RefBookTransport="RefBookTransport" UpdateAsync="UpdateAsync" ValidSubmit="OnValidSubmit" />
+        </div>
+    </div>
+</div>
+<ErrorModal CloseAsync="CloseErrorModalAsync" ErrorMessage="@_errorMessage" />
+<RefBookModal CloseAsync="CloseRefBookModalAsync" Message="@_message" Title="@_title"/>
+
+@code {
+
+    private List<PagingLink> Links { get; set; } = new List<PagingLink>();
+    private RefBookTransport RefBookTransport { get; set; } = new();
+    private int _spread = 2;
+    private int _pageSize = 7;
+    private int _number = 0;
+    private IJSObjectReference? _modalModule;
+    private string _errorMessage = "";
+    private bool _isValid = false;
+    private string _title = "";
+    private string _message = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _modalModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/modalHandler.js");
+        await GetRefBookAsync();
+        CreatePaginationLinks();
+        StateHasChanged();
+    }
+
+
+    private async Task GetRefBookAsync()
+    {
+        _refBookState.PageParameters.PageSize = _pageSize;
+        var response = await _refBookService.GetReferenceBookAsync(_refBookState.PageParameters);
+        if (response.IsSuccessStatusCode)
+        {
+            var pagingResponse = await response.GetPagingResponseAsync<RefTransportDto>("X-Pagination");
+            _refBookState.Metadata = pagingResponse.Metadata;
+            _refBookState.RefTransportDtos = pagingResponse.Items;
+        }
+        else
+        {
+            var errorDetails = await response.GetErrorDetailsAsync();
+            _errorMessage = errorDetails.Message! + $" Status code: {errorDetails.StatusCode}";
+            StateHasChanged();
+            await _modalModule.InvokeVoidAsync("showErrorModal");
+        }
+    }
+
+    private async Task OnSelectedPage(PagingLink link)
+    {
+        if (link.Page == _refBookState.Metadata.CurrentPage || !link.Enabled)
+            return;
+        _refBookState.Metadata.CurrentPage = link.Page;
+        await SelectedPage(link.Page);
+        CreatePaginationLinks();
+        StateHasChanged();
+    }
+
+    private async Task SelectedPage(int page)
+    {
+        _refBookState.PageParameters.PageNumber = page;
+        await GetRefBookAsync();
+    }
+
+    private void CreatePaginationLinks()
+    {
+        if (_refBookState.RefTransportDtos.Count > 0)
+        {
+            Links = new List<PagingLink>();
+            Links.Add(new PagingLink(_refBookState.Metadata.CurrentPage - 1, _refBookState.Metadata.HasPrevious, "Prev"));
+            for (int i = 1; i <= _refBookState.Metadata.TotalPages; i++)
+            {
+                if (i >= _refBookState.Metadata.CurrentPage - _spread && i <= _refBookState.Metadata.CurrentPage + _spread)
+                {
+                    Links.Add(new PagingLink(i, true, i.ToString()) { Active = _refBookState.Metadata.CurrentPage == i });
+                }
+            }
+            Links.Add(new PagingLink(_refBookState.Metadata.CurrentPage + 1, _refBookState.Metadata.HasNext, "Next"));
+            _number = _pageSize;
+            _number = _number * (_refBookState.Metadata.CurrentPage - 1);
+        }
+    }
+
+    private void SelectTransport(RefTransportDto refTransportDto)
+    {
+        RefBookTransport = new RefBookTransport
+            {
+                Brand = refTransportDto.Brand,
+                CarPlate = refTransportDto.CarPlate,
+                NumberOfAxles = refTransportDto.NumberOfAxles,
+                Id = refTransportDto.Id
+            };
+        StateHasChanged();
+    }
+
+    private async Task CreateAsync()
+    {
+        OnValidSubmit();
+        if (_isValid)
+        {
+            var response = await _refBookService.CreateAsync(RefBookTransport);
+            if (response.IsSuccessStatusCode)
+            {
+                _title = "Created!";
+                _message = "Successfuly created!";
+                StateHasChanged();
+                await _modalModule.InvokeVoidAsync("showRefModal");
+                await GetRefBookAsync();
+                StateHasChanged();
+            }
+            else
+            {
+                var errorDetails = await response.GetErrorDetailsAsync();
+                _errorMessage = errorDetails.Message! + $" Status code: {errorDetails.StatusCode}";
+                StateHasChanged();
+                await _modalModule.InvokeVoidAsync("showErrorModal");
+            }
+        }
+    }
+
+    private async Task UpdateAsync()
+    {
+        OnValidSubmit();
+        if (_isValid)
+        {
+            var response = await _refBookService.UpdateAsync(RefBookTransport);
+            if (response.IsSuccessStatusCode)
+            {
+                _title = "Updated!";
+                _message = "Successfuly updated!";
+                StateHasChanged();
+                await _modalModule.InvokeVoidAsync("showRefModal");
+                await GetRefBookAsync();
+                StateHasChanged();
+            }
+            else
+            {
+                var errorDetails = await response.GetErrorDetailsAsync();
+                _errorMessage = errorDetails.Message! + $" Status code: {errorDetails.StatusCode}";
+                StateHasChanged();
+                await _modalModule.InvokeVoidAsync("showErrorModal");
+            }
+        }
+    }
+
+    private void ClearCard()
+    {
+        RefBookTransport = new RefBookTransport();
+        StateHasChanged();
+
+    }
+    private void OnValidSubmit()
+    {
+        _isValid = true;
+        StateHasChanged();
+    }
+
+    private async Task CloseErrorModalAsync()
+    {
+        await _modalModule.InvokeVoidAsync("hideErrorModal");
+    }
+    private async Task CloseRefBookModalAsync()
+    {
+        await _modalModule.InvokeVoidAsync("hideRefModal");
+    }
+}

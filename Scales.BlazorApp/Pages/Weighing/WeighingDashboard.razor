@@ -1,0 +1,129 @@
+﻿@page "/weighing"
+@inject IJSRuntime _jsRuntime
+@inject IWeighingSimulator _simulator
+@inject IJournalService _journalService
+
+<div class="container">
+    <h1 class="text-center fw-bold">Weighing dashboard</h1>
+    <div class="row">
+        <div class="col-sm">
+            <div class="row">
+                <div class="col-sm">
+                    <div class="border border-secondary border-3 rounded" id="myChart" style="width:100%;height:50vh;"></div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-sm">
+                    <div class="border border-secondary border-3 rounded bg-success-subtle" id="columnchart_values" style="width:100%;height:50vh;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm ms-3">
+            <WeighingControlling BeginWeighingAsync="BeginWeighingAsync" SaveWeighingAsync="SaveWeighingAsync" GetTransport="GetTransport"
+                             CurrentWeight="@_currentWeight" GetTransportDisabled="@_getTransportDisabled" SaveWeighingDisabled="@_saveWeighingDisabled"
+                             StartWeighingDisabled="@_startWeighingDisabled" Transport="Transport"/>
+        </div>
+    </div>
+</div>
+<SavedModal CloseAsync="CloseSaveModalAsync" />
+<ErrorModal CloseAsync="CloseErrorModalAsync" ErrorMessage="@_errorMessage" />
+
+@code {
+    private IJSObjectReference? module;
+    private IJSObjectReference? modalModule;
+    private TransportToWeigh Transport { get; set; } = new();
+
+    private string _currentWeight = "0.00";
+    private bool _getTransportDisabled = false;
+    private bool _startWeighingDisabled = true;
+    private bool _saveWeighingDisabled = true;
+    private string _errorMessage = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/googlecharts.js");
+        modalModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/modalHandler.js");
+        await module.InvokeVoidAsync("setInitialLineChart");
+        StateHasChanged();
+    }
+
+    private void GetTransport()
+    {
+        Transport = _simulator.GenerateTransportDataForWeighing();
+        _getTransportDisabled = true;
+        _startWeighingDisabled = false;
+        StateHasChanged();
+    }
+
+    private async Task BeginWeighingAsync()
+    {
+        var floatTime = 0;
+        while(_simulator.WeighingQueue.Count > 0)
+        {
+            var weight = _simulator.WeighingQueue.Dequeue();
+            var data = new float[] { floatTime, weight };
+            await module!.InvokeVoidAsync("testChart", data);
+            _currentWeight = weight.ToString();
+            await Task.Delay(AppConstants.WEIGHING_PERIOD);
+            floatTime += 10;
+            StateHasChanged();
+        }
+        var barAxles = _simulator.AxlesList.ToArray();
+        await module!.InvokeVoidAsync("setBarChart", barAxles);
+        _startWeighingDisabled = true;
+        _saveWeighingDisabled = false;
+        StateHasChanged();
+    }
+    private async Task SaveWeighingAsync()
+    {
+        await module.InvokeVoidAsync("setInitialLineChart");
+        var transportDto = new TransportDto
+            {
+                AxlesDtos = new List<AxlesDto>(),
+                Brand = Transport.Brand,
+                Cargo = Transport.Cargo,
+                NumberOfAxles = Transport.NumberOfAxles,
+                CarPlate = Transport.CarPlate,
+                Weight = Transport.Weight
+
+            };
+        int index = 1;
+        foreach (var item in _simulator.AxlesList)
+        {
+            transportDto.AxlesDtos.Add(new AxlesDto { AxleNumber = index, LoadPerAxle = item });
+            index++;
+        }
+        var response = await _journalService.SaveWeighingDataAsync(transportDto);
+        if(response.IsSuccessStatusCode)
+            await modalModule.InvokeVoidAsync("showSavedModal");
+        else
+        {
+            //var content = await response.Content.ReadAsStringAsync();
+            var errorDetails = await response.GetErrorDetailsAsync();
+            _errorMessage = errorDetails.Message!;
+            StateHasChanged();
+            await modalModule.InvokeVoidAsync("showErrorModal");
+        }
+        ReturnToInitial();
+    }
+
+    private void ReturnToInitial()
+    {
+        _getTransportDisabled = false;
+        _startWeighingDisabled = true;
+        _saveWeighingDisabled = true;
+        _currentWeight = "0.00";
+        Transport = new TransportToWeigh();
+        StateHasChanged();
+    }
+
+    private async Task CloseSaveModalAsync()
+    {
+        await modalModule.InvokeVoidAsync("hideSaveModal");
+    }
+
+    private async Task CloseErrorModalAsync()
+    {
+        await modalModule.InvokeVoidAsync("hideErrorModal");
+    }
+}

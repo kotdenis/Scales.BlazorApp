@@ -1,0 +1,21 @@
+﻿<div class="modal" tabindex="-1" id="modalSaved">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-success">Saved!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="async() => await CloseAsync()"></button>
+            </div>
+            <div class="modal-body ms-2 me-2">
+                <p class="fw-bold">Your weighing is successfully saved!.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning fw-bold" data-bs-dismiss="modal" @onclick="async() => await CloseAsync()">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Func<Task> CloseAsync { get; set; } = new Func<Task>(() => Task.CompletedTask);
+}

@@ -1,0 +1,41 @@
+﻿@inherits LayoutComponentBase
+
+<div class="divContainer">
+    <div class="navContainer">
+        <NavigationMenu />
+    </div>
+    <div class="mainContainer">
+        @Body
+    </div>
+    <footer>
+        <div>
+        </div>
+    </footer>
+</div>
+<style>
+    .divContainer {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .navContainer {
+        flex-shrink: 0;
+    }
+
+    .mainContainer {
+        flex-grow: 1;
+        margin-top: 10vh;
+        margin-bottom: 5vh;
+    }
+
+    footer {
+        flex-shrink: 0;
+        height: 15vh;
+        background-color: #facc15;
+    }
+
+    h1 {
+        color: lightslategray;
+    }
+</style>

@@ -1,0 +1,17 @@
+version: '3.4'
+
+services:
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./scalessimmulator.ru.crt:/etc/ssl/scalessimmulator.ru.crt
+      - ./scalessimmulator.ru.key:/etc/ssl/scalessimmulator.ru.key
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 80:80
+      - 443:443
+  app:
+    image: denis227/blazor-test
+    expose:
+      - 80:80
+      - 443:443

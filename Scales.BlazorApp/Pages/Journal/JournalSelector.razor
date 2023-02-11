@@ -1,0 +1,39 @@
+﻿<div class="card ms-2" style="width: 18rem;">
+    <div class="card-body">
+        <h5 class="card-title">Select by dates</h5>
+        <form>
+            <div class="mt-3">
+                <label class="form-label fw-bold"><i class="fa-solid fa-calendar-days"></i>&nbsp;Start date</label>
+            </div>
+            <div>
+                <input class="form-control" type="date" @bind-value="StartDate"  />
+            </div>
+            <div class="mt-3">
+                <label class="form-label fw-bold"><i class="fa-solid fa-calendar-days"></i>&nbsp;End date</label>
+            </div>
+            <div>
+                <input class="form-control" type="date" @bind-value="EndDate" />
+            </div>
+        </form>
+        <div class="d-flex flex-column mt-2">
+            <button class="btn btn-success fw-bold" @onclick="async() => await GetByDatesAsync()" @onclick:preventDefault @onclick:stopPropagation>Select</button>
+            <button class="btn btn-secondary fw-bold mt-2" @onclick="() => ReturnToFull()">Return</button>
+        </div>
+    </div>
+</div>
+<style>
+    input::-webkit-calendar-picker-indicator{
+        color:orange !important;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public DateTime StartDate { get; set; }
+    [Parameter]
+    public DateTime EndDate { get; set; } 
+    [Parameter]
+    public Func<Task> GetByDatesAsync { get; set; }
+    [Parameter]
+    public Action ReturnToFull { get; set; }
+}

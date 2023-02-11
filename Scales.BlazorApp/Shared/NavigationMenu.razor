@@ -1,0 +1,69 @@
+﻿@inject NavigationManager navigationManager
+
+<div class="navbar navbar-light bg-warning fixed-top" style="height:10vh">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#" style="font-weight:bold;font-size:5vh;">
+            <img src="images/pngegg-2.png" style="height:5vh;width:5vw" />
+            Scales' simulator
+            </a>
+        <div>
+            <LoginDisplay />
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div class="offcanvas offcanvas-end text-bg-dark bg-opacity-75" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
+            <div class="offcanvas-header">
+                <h3 class="offcanvas-title fw-bold" id="offcanvasDarkNavbarLabel" style="color:#fde047">Main menu</h3>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#" style="font-weight:bold;color:#14b8a6">
+                            <i class="fa fa-solid fa-home" style="color:#14b8a6"></i>&nbsp;Home
+                        </a>
+                    </li>
+                    
+                    <AuthorizeView>
+                        <NotAuthorized>
+                            <li class="nav-item">
+                                <span style="font-weight:bold;color:#14b8a6"><i class="fa fa-solid fa-circle-info"></i>&nbsp;If you want to see more - authorize!</span>
+                            </li>
+                        </NotAuthorized>
+                        <Authorized>
+                            <li class="nav-item">
+                                <a class="nav-link" href="weighing" style="font-weight:bold;color:#14b8a6">
+                                    <i class="fa fa-solid fa-chart-line"></i>&nbsp;Weighing
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="journal" style="font-weight:bold;color:#14b8a6">
+                                    <i class="fa fa-solid fa-list"></i>&nbsp;Journal
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="referenceBook" style="font-weight:bold;color:#14b8a6">
+                                    <i class="fa fa-solid fa-book"></i>&nbsp;Reference Book
+                                </a>
+                            </li>
+                        </Authorized>
+                    </AuthorizeView>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private void NavigateToWeighing()
+    {
+        navigationManager.NavigateTo("weighing");
+    }
+
+    private void NavigateToJournal()
+    {
+        navigationManager.NavigateTo("journal");
+    }
+}
