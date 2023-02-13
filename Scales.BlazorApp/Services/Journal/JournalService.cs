@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.WebUtilities;
 using Scales.BlazorApp.Constants;
-using Scales.BlazorApp.Infrastructure.Errors;
-using Scales.BlazorApp.Infrastructure.PageHelpers;
-using Scales.BlazorApp.Infrastructure.Paging;
 using Scales.BlazorApp.Infrastructure.Auxiliary;
+using Scales.BlazorApp.Infrastructure.Paging;
 using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace Scales.BlazorApp.Services.Journal
 {
@@ -25,7 +22,7 @@ namespace Scales.BlazorApp.Services.Journal
                 ["pageSize"] = parameters.PageSize.ToString()
             };
             var response = await _httpClient.GetAsync(QueryHelpers.AddQueryString(UrlConstants.JOURNAL_URL + "/api/journal/Journal", queryStringParam));
-            
+
             return response;
         }
 
